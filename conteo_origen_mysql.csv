@@ -1,0 +1,17 @@
+tabla,filas_origen,metodo
+actor,200,INSERT del archivo original
+address,603,INSERT del archivo original
+category,16,INSERT del archivo original
+city,600,INSERT del archivo original
+country,109,INSERT del archivo original
+customer,599,INSERT del archivo original
+film,1000,INSERT del archivo original
+film_actor,5462,INSERT del archivo original
+film_category,1000,INSERT del archivo original
+film_text,1000,Estimado por trigger ins_film
+inventory,4581,INSERT del archivo original
+language,6,INSERT del archivo original
+payment,16044,INSERT del archivo original
+rental,16044,INSERT del archivo original
+staff,2,INSERT del archivo original
+store,2,INSERT del archivo original
