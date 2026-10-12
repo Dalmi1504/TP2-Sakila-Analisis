@@ -176,3 +176,104 @@ La reconciliación realizada sobre las 16 tablas presentó una diferencia de cer
 En particular, se investigó el funcionamiento de la tabla film_text y su trigger ins_film. Posteriormente, se comprobó directamente mediante MySQL Workbench que la tabla contenía 1.000 registros en una base MySQL con datos de Sakila, coincidiendo con los 1.000 registros encontrados en SQL Server.
 La coincidencia de cantidades permite verificar la consistencia de los recuentos, aunque no garantiza por sí sola que todos los valores de los registros migrados sean idénticos.
 Finalmente, la validación del esquema confirmó que las columnas físicas registradas en el diccionario existen en SQL Server, sin detectar columnas faltantes.
+
+
+ Actividad 1 – Extracción y análisis del rendimiento comercial
+
+ Objetivo
+
+Analizar el rendimiento comercial por tienda y por empleado utilizando la base de datos Sakila migrada a SQL Server, correspondiente a la variante 5 del trabajo práctico.
+
+El objetivo es obtener las métricas necesarias mediante consultas T-SQL, trasladar los resultados a pandas y comparar los cálculos realizados en ambas herramientas.
+
+ Tecnologías utilizadas
+
+- SQL Server
+- Python 3.12
+- pandas
+- Jupyter Notebook
+- Visual Studio Code
+- mssql-python
+
+ Archivos desarrollados
+
+- actividad1_consultas.sql: contiene las consultas T-SQL comentadas.
+- actividad1_analisis.ipynb: notebook con la extracción de datos, validaciones, comparación de resultados, medición de tiempos y visualizaciones.
+
+ Desarrollo
+
+ 1. Extracción optimizada de datos
+
+Se desarrolló una consulta T-SQL que relaciona las tablas "empleado" y "pago" para calcular la cantidad de pagos, los ingresos totales y el ticket promedio por empleado y tienda.
+
+También se utilizaron funciones de ventana para calcular la participación de cada empleado dentro de su tienda y la participación de cada tienda sobre los ingresos totales del negocio.
+
+Las uniones y agregaciones principales se realizaron en SQL Server para evitar trasladar innecesariamente todos los pagos al DataFrame principal.
+
+2. Carga de datos con pandas
+
+Se utilizó pandas.read_sql() para ejecutar la consulta y cargar los resultados agrupados en un DataFrame.
+
+En nuestra consulta principal no utilizamos params porque analizamos todas las tiendas y todos los empleados, sin filtros variables. Si necesitáramos filtrar por tienda o fecha, utilizaríamos consultas parametrizadas para evitar concatenaciones y prevenir inyecciones SQL.
+
+3. Comparación entre SQL Server y pandas
+
+Se calculó una misma métrica de ingresos por tienda y empleado mediante dos enfoques:
+
+- Agregación directamente en SQL Server.
+- Agrupación con pandas a partir de los pagos individuales.
+
+Se compararon los resultados para verificar su coincidencia y se midieron los tiempos de ejecución utilizando perf_counter().
+
+Los valores obtenidos coincidieron, sin diferencias en los ingresos calculados.
+
+La comparación de tiempos debe interpretarse considerando que la medición de SQL Server incluye la consulta y transferencia de resultados, mientras que pandas trabaja con datos previamente cargados en memoria.
+
+ 4. Controles de calidad
+
+Se verificó la integridad de las relaciones entre pagos y empleados, y se identificaron posibles empleados sin operaciones.
+
+También se realizaron consultas complementarias para analizar la distribución de clientes y la relación de los pagos con ambas tiendas.
+
+ 5. Visualizaciones
+
+Se generaron gráficos para representar la participación de los empleados en los ingresos de cada tienda y comparar la recaudación total entre tiendas.
+
+Dado que la base contiene un empleado por tienda, cada empleado representa el 100 % de los ingresos de su tienda en el gráfico de participación interna.
+
+ Resultados obtenidos
+
+| Indicador | Tienda 1 | Tienda 2 |
+|---|---:|---:|
+| Empleado | Mike Hillyer | Jon Stephens |
+| Cantidad de pagos | 8.054 | 7.990 |
+| Ingresos totales | $33.482,50 | $33.924,06 |
+| Ticket promedio aproximado | $4,16 | $4,25 |
+| Participación en el negocio | 49,67 % | 50,33 % |
+
+Ingresos totales del negocio: $67.406,56.
+
+Se analizaron 16.044 pagos. No se encontraron pagos asociados a empleados inexistentes y las métricas de ingresos calculadas en SQL Server y pandas coincidieron.
+
+ Conclusión
+
+La Actividad 1 permitió comprobar que SQL Server y pandas pueden utilizarse de manera complementaria para analizar información comercial.
+
+SQL Server resultó adecuado para resolver las uniones, agregaciones y cálculos principales, mientras que pandas permitió validar los resultados y desarrollar visualizaciones.
+
+La comparación confirmó la consistencia de los ingresos calculados mediante ambos enfoques y permitió identificar una diferencia pequeña en la recaudación de las tiendas, favorable a la tienda 2.
+
+Estado: Actividad 1 finalizada.
+ 6. Reaparición de dificultades de conexión con SQL Server
+
+**Dificultad:** Durante la Actividad 0 habíamos tenido inconvenientes para conectar Python con SQL Server, ejecutado en Docker. Estos problemas se resolvieron mediante la configuración del controlador `mssql-python`, las variables del archivo `.env` y las bibliotecas necesarias en macOS.
+
+Sin embargo, al comenzar la Actividad 1, volvimos a encontrar dificultades relacionadas con la conexión al trabajar desde un notebook de Jupyter en Visual Studio Code.
+
+**Causa identificada:** Aunque la conexión ya funcionaba desde los scripts de la Actividad 0, el notebook utiliza su propio kernel de Python. Por eso fue necesario comprobar que estuviera utilizando el entorno virtual correcto y que las configuraciones requeridas para acceder a SQL Server estuvieran disponibles en ese proceso.
+
+**Solución:** Revisamos el entorno de ejecución del notebook, seleccionamos el intérprete de Python correspondiente al proyecto y verificamos nuevamente la conexión con la base de datos `Sakila_Espanol`.
+
+Una vez restablecida la comunicación, pudimos ejecutar las consultas T-SQL desde pandas y continuar con el análisis de datos.
+
+**Aprendizaje:** Comprobamos que una conexión exitosa desde un script de Python no garantiza automáticamente que funcione desde Jupyter. Es importante verificar el entorno virtual, el kernel y las variables de configuración cada vez que se utiliza una herramienta o un proceso de ejecución diferente.
