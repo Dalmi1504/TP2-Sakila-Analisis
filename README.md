@@ -264,16 +264,101 @@ SQL Server resultó adecuado para resolver las uniones, agregaciones y cálculos
 La comparación confirmó la consistencia de los ingresos calculados mediante ambos enfoques y permitió identificar una diferencia pequeña en la recaudación de las tiendas, favorable a la tienda 2.
 
 Estado: Actividad 1 finalizada.
- 6. Reaparición de dificultades de conexión con SQL Server
+6. Reaparición de dificultades de conexión con SQL Server
 
-**Dificultad:** Durante la Actividad 0 habíamos tenido inconvenientes para conectar Python con SQL Server, ejecutado en Docker. Estos problemas se resolvieron mediante la configuración del controlador `mssql-python`, las variables del archivo `.env` y las bibliotecas necesarias en macOS.
+Dificultad: Durante la Actividad 0 habíamos tenido inconvenientes para conectar Python con SQL Server, ejecutado en Docker. Estos problemas se resolvieron mediante la configuración del controlador 'mssql-python', las variables del archivo '.env' y las bibliotecas necesarias en macOS.
 
 Sin embargo, al comenzar la Actividad 1, volvimos a encontrar dificultades relacionadas con la conexión al trabajar desde un notebook de Jupyter en Visual Studio Code.
 
-**Causa identificada:** Aunque la conexión ya funcionaba desde los scripts de la Actividad 0, el notebook utiliza su propio kernel de Python. Por eso fue necesario comprobar que estuviera utilizando el entorno virtual correcto y que las configuraciones requeridas para acceder a SQL Server estuvieran disponibles en ese proceso.
+Causa identificada: Aunque la conexión ya funcionaba desde los scripts de la Actividad 0, el notebook utiliza su propio kernel de Python. Por eso fue necesario comprobar que estuviera utilizando el entorno virtual correcto y que las configuraciones requeridas para acceder a SQL Server estuvieran disponibles en ese proceso.
 
-**Solución:** Revisamos el entorno de ejecución del notebook, seleccionamos el intérprete de Python correspondiente al proyecto y verificamos nuevamente la conexión con la base de datos `Sakila_Espanol`.
+Solución: Revisamos el entorno de ejecución del notebook, seleccionamos el intérprete de Python correspondiente al proyecto y verificamos nuevamente la conexión con la base de datos 'Sakila_Espanol'.
 
 Una vez restablecida la comunicación, pudimos ejecutar las consultas T-SQL desde pandas y continuar con el análisis de datos.
 
-**Aprendizaje:** Comprobamos que una conexión exitosa desde un script de Python no garantiza automáticamente que funcione desde Jupyter. Es importante verificar el entorno virtual, el kernel y las variables de configuración cada vez que se utiliza una herramienta o un proceso de ejecución diferente.
+Aprendizaje: Comprobamos que una conexión exitosa desde un script de Python no garantiza automáticamente que funcione desde Jupyter. Es importante verificar el entorno virtual, el kernel y las variables de configuración cada vez que se utiliza una herramienta o un proceso de ejecución diferente.
+
+Actividad 2 – Perfilado y diagnóstico de calidad de datos
+
+Objetivo
+
+Evaluar la calidad de los datos utilizados para analizar el rendimiento comercial por tienda y por empleado, identificando valores faltantes, duplicados, valores atípicos e inconsistencias antes de continuar con las siguientes etapas del proyecto.
+
+Conjunto de datos
+
+Se utilizó la base de datos Sakila_Espanol en SQL Server.
+
+El conjunto principal se construyó a partir de las tablas pago y empleado, con las siguientes características:
+
+Registros analizados: 16.044.
+
+Columnas: 6.
+
+Campos: pago_id, cliente_id, empleado_id, tienda_id, monto y fecha_pago.
+
+Período: del 24 de mayo de 2005 al 14 de febrero de 2006.
+
+Para validar los pagos atípicos también se utilizó la tabla alquiler.
+
+Análisis realizados
+
+Se realizaron los siguientes controles:
+
+Reconocimiento del conjunto de datos mediante pandas: dimensiones, tipos, primeras filas, muestra aleatoria y estadísticas descriptivas.
+
+Cuantificación de valores faltantes y registros duplicados.
+
+Identificación de valores atípicos mediante el rango intercuartílico (IQR).
+
+Verificación de pagos sin empleado asignado y empleados sin operaciones.
+
+Identificación de clientes con pagos procesados por empleados de ambas tiendas.
+
+Validación de reglas de negocio: montos negativos y fechas futuras.
+
+Comparación independiente de dos controles mediante T-SQL y pandas.
+
+Verificación de la relación entre los pagos atípicos y sus alquileres correspondientes.
+
+Resultados principales
+
+Valores faltantes: 0
+
+Pagos duplicados: 0
+
+Pagos atípicos por IQR: 857 (5,34 %)
+
+Pagos sin empleado válido: 0
+
+Empleados sin operaciones: 0
+
+Clientes con pagos procesados en ambas tiendas: 599
+
+Pagos con monto negativo: 0
+
+Pagos con fecha futura: 0
+
+Pagos atípicos sin alquiler asociado: 0
+
+Pagos atípicos con cliente inconsistente: 0
+
+Los 857 pagos atípicos superan el límite superior de $7,99 calculado mediante IQR.
+De estos registros, 855 presentan importes terminados en ,99, lo que sugiere un patrón compatible con precios comerciales. Además, se verificó que todos están asociados a alquileres existentes y que sus clientes coinciden.
+Estos controles respaldan la integridad de las relaciones, aunque no permiten confirmar por sí solos la exactitud de los importes cobrados.
+
+Decisiones de calidad de datos
+No se realizaron eliminaciones ni modificaciones de registros, debido a que no se detectaron valores faltantes, duplicados ni incumplimientos de las reglas de negocio verificadas.
+Se decidió conservar los pagos atípicos para evitar alterar injustificadamente los ingresos totales y el ticket promedio. Queda documentada la posibilidad de contrastar sus importes con las tarifas de alquiler correspondientes.
+También se conservaron las fechas originales, considerando que Sakila contiene información histórica.
+
+Archivos de la actividad:
+
+actividad2_perfilado.ipynb: notebook con el análisis exploratorio, los controles de calidad y las validaciones.
+
+actividad2_diagnostico.md: diagnóstico escrito en formato Markdown.
+
+actividad2_diagnostico.pdf: versión del diagnóstico para entregar, con una extensión de dos páginas.
+
+Conclusión
+El conjunto de datos presenta resultados satisfactorios en los controles de calidad realizados y se considera apto para continuar con el análisis de rendimiento comercial.
+Los valores atípicos identificados se mantienen documentados y no se consideran errores confirmados, ya que las verificaciones efectuadas no detectaron inconsistencias en sus relaciones con los alquileres y clientes.
