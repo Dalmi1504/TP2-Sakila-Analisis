@@ -1,3 +1,57 @@
+-- TP2 - SAKILA | CONSULTAS SQL
+
+-- Este archivo incluye consultas principales, necesarias para
+-- resolver las consignas, y consultas exploratorias,
+-- utilizadas para comprender las relaciones entre tablas,
+-- verificar la integridad de los datos y complementar
+-- el análisis comercial.
+
+-- CLASIFICACIÓN DE CONSULTAS
+
+-- ACTIVIDAD 1 - INTEGRACIÓN SQL Y PYTHON
+-- CONSULTAS PRINCIPALES:
+-- Consulta 6: métricas comerciales por empleado.
+-- Consulta 7: cálculo de participaciones en SQL Server.
+-- Consulta 8: validación de resultados SQL vs pandas.
+-- Consulta 9: pagos individuales para procesar en pandas.
+--
+-- Consulta 1: exploración de relaciones entre pagos,
+-- empleados y tiendas.
+--
+-- NOTA:
+-- El notebook también contiene la consulta_rendimiento,
+-- que construye el conjunto de trabajo optimizado
+-- directamente en SQL Server.
+
+-- ACTIVIDAD 2 - CALIDAD DE DATOS
+--
+-- CONSULTAS DE CONTROL Y EXPLORACIÓN:
+-- Consulta 2: pagos sin empleado válido.
+-- Consulta 3: empleados sin operaciones.
+-- Consulta 4: clientes con pagos procesados en ambas tiendas.
+--
+
+-- ACTIVIDAD 3 - ANÁLISIS COMERCIAL
+-- CONSULTA DE APOYO:
+-- Consulta 7: participación de empleados y tiendas
+-- en los ingresos comerciales.
+
+-- CONSULTA EXPLORATORIA COMPLEMENTARIA
+--Consulta 5: distribución de clientes por tienda.
+--
+-- ACLARACIÓN GENERAL
+
+--
+-- Las consultas exploratorias se conservan como registro
+-- del proceso de investigación y validación de los datos.
+-- Las consultas principales permiten construir y comprobar
+-- las métricas utilizadas en el análisis comercial.
+-- Los cálculos realizados en SQL Server se comparan con
+-- los obtenidos en pandas dentro del notebook de la
+-- Actividad 1, incluyendo la medición de tiempos.
+
+
+
 -- CONSULTA 1: RELACIÓN ENTRE PAGOS, EMPLEADOS Y TIENDAS
 -- Pregunta:
 -- ¿Podemos identificar qué empleado procesó cada pago
@@ -5,7 +59,6 @@
 -- Objetivo:
 -- Comprobar que las tablas pago y empleado se relacionan
 -- correctamente y visualizar los primeros 10 registros.
--- ============================================================
 
 USE Sakila_Espanol;
 
@@ -216,3 +269,55 @@ SELECT
         AS porcentaje_tienda_negocio
 FROM participaciones
 ORDER BY tienda_id, empleado_id;
+
+
+-- CONSULTA 8: VALIDACIÓN SQL VS PANDAS
+-- Pregunta:
+-- ¿Coinciden los ingresos y la cantidad de pagos calculados
+-- directamente en SQL Server con los obtenidos en pandas?
+-- Objetivo:
+-- Calcular las métricas por empleado y tienda en SQL Server
+-- para compararlas con los resultados de pandas.
+-- Esta misma consulta se utiliza en el notebook para
+-- verificar los resultados y medir el tiempo de ejecución.
+
+
+USE Sakila_Espanol;
+
+SELECT
+    e.tienda_id,
+    p.empleado_id,
+    COUNT(*) AS cantidad_pagos,
+    SUM(p.monto) AS ingresos_sql
+FROM pago AS p
+INNER JOIN empleado AS e
+    ON p.empleado_id = e.empleado_id
+GROUP BY
+    e.tienda_id,
+    p.empleado_id
+ORDER BY
+    e.tienda_id,
+    p.empleado_id;
+
+
+=
+-- CONSULTA 9: PAGOS INDIVIDUALES PARA PANDAS
+-- Objetivo:
+-- Obtener los pagos individuales y la tienda del empleado
+-- que procesó cada operación.
+-- Este conjunto de datos se utiliza en pandas para
+-- calcular las métricas y compararlas con SQL Server.
+-- A diferencia de la consulta optimizada, esta consulta
+-- no agrupa los pagos porque pandas debe hacerlo.
+
+USE Sakila_Espanol;
+
+SELECT
+    p.pago_id,
+    p.empleado_id,
+    p.cliente_id,
+    p.monto,
+    e.tienda_id
+FROM pago AS p
+LEFT JOIN empleado AS e
+    ON p.empleado_id = e.empleado_id;

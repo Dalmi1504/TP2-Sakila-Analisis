@@ -1,3 +1,5 @@
+borador informe
+
 Actividad 0 – Preparación, conexión y reconciliación
 
 Objetivo
@@ -362,3 +364,95 @@ actividad2_diagnostico.pdf: versión del diagnóstico para entregar, con una ext
 Conclusión
 El conjunto de datos presenta resultados satisfactorios en los controles de calidad realizados y se considera apto para continuar con el análisis de rendimiento comercial.
 Los valores atípicos identificados se mantienen documentados y no se consideran errores confirmados, ya que las verificaciones efectuadas no detectaron inconsistencias en sus relaciones con los alquileres y clientes.
+
+## Actividad 3 – Análisis comercial y visualización de resultados
+
+**Estado:** Finalizada  
+**Fecha:** 13/10/2026  
+**Variante 5:** Rendimiento comercial por tienda y por empleado
+
+### Objetivo
+
+Analizar el rendimiento comercial de las dos tiendas de Sakila mediante indicadores de ingresos, cantidad de operaciones, ticket promedio y participación porcentual de los empleados y las tiendas.
+
+### Desarrollo
+
+Se realizaron consultas en SQL Server utilizando funciones de agregación y funciones de ventana, especialmente `SUM() OVER (PARTITION BY ...)`, para calcular las participaciones en los ingresos.
+
+Los resultados se procesaron también con pandas mediante `groupby().transform()` y se verificó su coincidencia numérica con SQL utilizando `numpy.allclose()`.
+
+### Resultados obtenidos
+
+| Indicador | Tienda 1 | Tienda 2 |
+|---|---:|---:|
+| Empleado | Mike Hillyer | Jon Stephens |
+| Ingresos totales | $33.482,50 | $33.924,06 |
+| Cantidad de operaciones | 8.054 | 7.990 |
+| Ticket promedio | $4,16 | $4,25 |
+| Participación en el negocio | 49,67 % | 50,33 % |
+| Participación del empleado en su tienda | 100 % | 100 % |
+
+**Total general:** 16.044 operaciones y $67.406,56 de ingresos.
+
+### Gráficos realizados
+
+Se generaron tres visualizaciones en Python con Matplotlib, exportadas como PNG a 150 dpi.
+
+**1. Participación de ingresos por empleado y tienda**
+
+![Participación por empleado](graficos/grafico_participacion_empleados.png)
+
+Gráfico de barras apiladas al 100 % que muestra la participación de cada empleado en su tienda.
+
+**2. Ticket promedio por tienda**
+
+![Ticket promedio](graficos/grafico_ticket_promedio.png)
+
+Gráfico de barras horizontales que destaca el mayor ticket promedio de la tienda 2. Incluye un título narrativo, una categoría resaltada y una anotación del valor principal.
+
+**3. Evolución mensual de ingresos**
+
+![Evolución mensual](graficos/grafico_evolucion_mensual.png)
+
+Gráfico de líneas que compara los ingresos registrados por tienda durante los meses disponibles.
+
+### Hallazgos comerciales
+
+**Hallazgo 1 – Participación de los empleados**
+
+Cada tienda tiene un solo empleado registrado, por lo que cada uno representa el 100 % de los ingresos de su sucursal.
+
+**Decisión de negocio:** complementar la comparación con otras variables, como operaciones procesadas y horas trabajadas, para evaluar productividad.
+
+**Hallazgo 2 – Diferencia en el ticket promedio**
+
+La tienda 2 presenta un ticket promedio de $4,25, superior al de la tienda 1 ($4,16), aunque procesa menos operaciones.
+
+**Decisión de negocio:** investigar las tarifas y características de los alquileres para identificar los factores asociados a esa diferencia.
+
+**Hallazgo 3 – Concentración mensual de ingresos**
+
+Julio de 2005 presenta la mayor facturación mensual registrada en ambas tiendas: $13.998,56 en la tienda 1 y $14.370,35 en la tienda 2.
+
+**Decisión de negocio:** analizar la distribución temporal de las operaciones y verificar la cobertura de los datos antes de tomar decisiones sobre planificación de recursos.
+
+### Limitaciones
+
+- La base contiene únicamente un empleado por tienda, lo que impide comparar empleados dentro de una misma sucursal.
+- Una mayor facturación no demuestra automáticamente mayor productividad.
+- Existen meses sin registros, por lo que no puede confirmarse estacionalidad a partir de los datos disponibles.
+
+### Archivos generados
+
+- `actividad3_analisis.ipynb`
+- `graficos/grafico_participacion_empleados.png`
+- `graficos/grafico_ticket_promedio.png`
+- `graficos/grafico_evolucion_mensual.png`
+
+### Validación final
+
+Se reinició el kernel de Jupyter y se ejecutaron todas las celdas del notebook mediante **Run All**, sin errores.
+
+Los indicadores SQL y pandas coincidieron dentro de la tolerancia numérica utilizada.
+
+**Actividad 3 finalizada.**
