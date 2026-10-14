@@ -456,3 +456,254 @@ Se reinició el kernel de Jupyter y se ejecutaron todas las celdas del notebook 
 Los indicadores SQL y pandas coincidieron dentro de la tolerancia numérica utilizada.
 
 **Actividad 3 finalizada.**
+
+# TP2 — Análisis de Datos con Sakila
+
+## Rendimiento comercial por tienda y empleado
+
+**Variante 5 — Rendimiento comercial por tienda y por empleado**
+
+Proyecto académico desarrollado para analizar el rendimiento comercial de las tiendas y sus empleados a partir de la base de datos Sakila.
+
+Se utilizan SQL Server, Python, pandas y un proceso ETL para extraer, analizar, transformar y almacenar información comercial.
+
+## 1. Objetivo del proyecto
+
+Analizar las operaciones de pago de Sakila para obtener indicadores que permitan comparar el desempeño de las tiendas y sus empleados.
+
+Los indicadores principales son:
+
+- Ingreso total por tienda y empleado.
+- Cantidad de operaciones realizadas.
+- Ticket promedio.
+- Participación porcentual de cada empleado en su tienda.
+- Participación porcentual de cada tienda en el negocio.
+- Cumplimiento de metas comerciales simuladas.
+
+También se realizan controles de calidad de los datos.
+
+## 2. Tecnologías utilizadas
+
+- **SQL Server:** almacenamiento y consultas de datos.
+- **Docker:** ejecución del servidor de base de datos.
+- **Python 3.12:** procesamiento y automatización.
+- **pandas:** limpieza, integración y transformación de datos.
+- **mssql-python:** conexión entre Python y SQL Server.
+- **python-dotenv:** lectura de variables de entorno.
+- **Visual Studio Code:** desarrollo y ejecución.
+- **Git y GitHub:** control de versiones.
+
+## 3. Base de datos
+
+Se utiliza la base de datos `Sakila_Espanol`.
+
+Para el análisis comercial se trabaja principalmente con:
+
+- `pago`: operaciones de pago, importes y clientes.
+- `empleado`: información de empleados y tiendas.
+
+Los resultados del ETL se almacenan en:
+
+`dbo.TP2_RendimientoComercial`
+
+Las tablas originales de Sakila no se modifican durante la carga de resultados.
+
+## 4. Desarrollo de las actividades
+
+### Actividad 1 — Consultas SQL
+
+Se trabajó con consultas SQL orientadas al análisis del rendimiento comercial por tienda y empleado.
+
+Se utilizaron agrupaciones, funciones de agregación y funciones de ventana para calcular indicadores comerciales.
+
+### Actividad 2 — Exploración y calidad de datos
+
+Se analizaron los datos disponibles, su estructura y posibles problemas de calidad.
+
+Se realizaron verificaciones relacionadas con operaciones, empleados y clientes.
+
+### Actividad 3 — Análisis con Python y pandas
+
+Se trabajó con los datos de Sakila desde Python para realizar análisis y cálculos mediante pandas.
+
+Se utilizaron operaciones de agrupación y transformación para obtener métricas comerciales.
+
+### Actividad 4 — Pipeline ETL
+
+Se desarrolló el archivo `actividad4_etl.py`, que automatiza el proceso de extracción, transformación y carga.
+
+El ETL integra dos orígenes:
+
+1. SQL Server, con los pagos y empleados de Sakila.
+2. `metas_comerciales.csv`, con metas comerciales ficticias para cada tienda.
+
+El proceso ejecuta controles de calidad, calcula indicadores y carga los resultados en SQL Server.
+
+## 5. Archivo de metas comerciales
+
+El archivo `metas_comerciales.csv` contiene:
+
+| tienda_id | meta_ingresos |
+|---|---:|
+| 1 | 35000 |
+| 2 | 35000 |
+
+**Importante:** las metas son simuladas con fines académicos. No representan objetivos comerciales reales de Sakila.
+
+Este archivo permite integrar un segundo origen de datos mediante `merge()` de pandas.
+
+## 6. Funcionamiento del ETL
+
+El pipeline se divide en tres etapas principales.
+
+**Extracción**
+
+- Conexión con SQL Server.
+- Obtención de pagos y empleados.
+- Lectura del archivo CSV.
+
+**Transformación**
+
+- Identificación de pagos sin empleado o tienda.
+- Control de empleados sin operaciones.
+- Identificación de clientes atendidos en ambas tiendas.
+- Exclusión de registros incompletos para los cálculos.
+- Agrupación de operaciones por tienda y empleado.
+- Cálculo de ingresos, operaciones y ticket promedio.
+- Integración de metas comerciales mediante `merge()`.
+- Cálculo de participaciones y cumplimiento de metas.
+
+**Carga**
+
+- Creación de la tabla de destino si no existe.
+- Eliminación de resultados anteriores.
+- Inserción de resultados actualizados.
+- Confirmación o reversión de la transacción.
+
+El script utiliza funciones con responsabilidades específicas, registros de ejecución mediante `logging` y manejo de excepciones.
+
+## 7. Justificación de DELETE + INSERT
+
+Para la carga se eligió una estrategia de **reemplazo completo mediante DELETE + INSERT dentro de una transacción**.
+
+La tabla de destino contiene resultados analíticos que se reconstruyen a partir de las fuentes originales en cada ejecución.
+
+Esta estrategia fue seleccionada porque:
+
+- Evita acumular registros duplicados.
+- Es sencilla de implementar y mantener.
+- Resulta adecuada para el volumen reducido de datos.
+- Permite revertir la operación mediante `ROLLBACK` si falla la carga.
+
+No se implementó una carga incremental mediante `UPSERT`, ya que no es necesario conservar resultados históricos ni procesar únicamente registros modificados.
+
+Esta estrategia se relaciona con el enfoque de reemplazo completo estudiado en la materia.
+
+## 8. Configuración del entorno
+
+### Requisitos
+
+- Python 3.12.
+- SQL Server disponible.
+- Base de datos `Sakila_Espanol`.
+- Dependencias Python instaladas.
+- Archivo `.env` configurado.
+
+### Variables de entorno
+
+Crear un archivo `.env` en la carpeta principal del proyecto con las siguientes variables:
+
+```env
+DB_SERVER=localhost
+DB_PORT=1433
+DB_NAME=Sakila_Espanol
+DB_USER=tu_usuario
+DB_PASSWORD=tu_contrasena
+```
+
+Reemplazar los valores de ejemplo por los correspondientes a la instalación local.
+
+**Seguridad:** el archivo `.env` contiene credenciales y no debe subirse a GitHub.
+
+### Instalación de dependencias
+
+Activar el entorno virtual:
+
+```bash
+source .venv/bin/activate
+```
+
+Instalar las dependencias necesarias:
+
+```bash
+python -m pip install pandas mssql-python python-dotenv
+```
+
+## 9. Ejecución del ETL
+
+Desde la carpeta principal del proyecto, ejecutar:
+
+```bash
+python actividad4_etl.py
+```
+
+El script muestra registros de cada etapa, incluyendo cantidades extraídas, controles realizados, filas transformadas y registros insertados.
+
+En el entorno macOS utilizado durante el desarrollo fue necesario configurar `DYLD_LIBRARY_PATH` para resolver la carga de bibliotecas OpenSSL requeridas por el controlador de conexión.
+
+## 10. Resultados obtenidos
+
+En las ejecuciones realizadas se obtuvieron los siguientes resultados:
+
+| Indicador | Resultado |
+|---|---:|
+| Pagos extraídos | 16.044 |
+| Ingresos totales | $67.406,56 |
+| Empleados sin operaciones | 0 |
+| Pagos sin empleado o tienda | 0 |
+| Clientes atendidos en ambas tiendas | 599 |
+| Registros generados por el ETL | 2 |
+
+### Rendimiento comercial
+
+| Tienda | Empleado | Operaciones | Ingreso total |
+|---|---|---:|---:|
+| 1 | Mike Hillyer | 8.054 | $33.482,50 |
+| 2 | Jon Stephens | 7.990 | $33.924,06 |
+
+Los resultados corresponden al conjunto de datos utilizado durante las pruebas.
+
+## 11. Verificación e idempotencia
+
+Se realizaron varias ejecuciones consecutivas del ETL.
+
+Para verificar la cantidad de registros cargados, se utilizó:
+
+```sql
+SELECT COUNT(*) AS cantidad_registros
+FROM dbo.TP2_RendimientoComercial;
+```
+
+**Resultado obtenido: 2 registros.**
+
+La cantidad se mantuvo estable después de volver a ejecutar el proceso, sin acumulación de filas.
+
+Esta prueba respalda la idempotencia de la carga. La igualdad completa de los resultados también puede comprobarse comparando los valores almacenados entre ejecuciones.
+
+## 12. Archivos de la Actividad 4
+
+| Archivo | Descripción |
+|---|---|
+| `actividad4_etl.py` | Script principal del pipeline ETL |
+| `metas_comerciales.csv` | Archivo plano con metas comerciales |
+| `actividad4_verificacion.sql` | Consulta SQL de verificación |
+| `actividad4_evidencia.md` | Evidencia de ejecuciones e idempotencia |
+| `BITACORA_ACTIVIDAD4.md` | Registro de desarrollo, decisiones y pruebas |
+
+## 13. Conclusión
+
+El proyecto permite analizar el rendimiento comercial de Sakila combinando consultas SQL y procesamiento con Python.
+
+La Actividad 4 integra los conocimientos adquiridos mediante un pipeline ETL que extrae datos de dos fuentes, aplica controles de calidad, calcula indicadores comerciales y almacena los resultados en una tabla analítica.
+
+Las pruebas realizadas demostraron que el pipeline puede ejecutarse repetidamente sin incrementar la cantidad de registros de destino.
